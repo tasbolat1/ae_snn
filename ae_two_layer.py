@@ -55,30 +55,33 @@ params = snn.params(args.network_config)
 writer = SummaryWriter(".")
 
 # implement one layer
-class OneLayerMLP(torch.nn.Module):
-    def __init__(self, params, input_size,output_size):
-        super(OneLayerMLP, self).__init__()
+# implement one layer
+class TwoLayerMLP(torch.nn.Module):
+    def __init__(self, params, input_size,hidden_size, output_size):
+        super(TwoLayerMLP, self).__init__()
         self.slayer = snn.layer(params["neuron"], params["simulation"])
-        self.fc = self.slayer.dense(input_size, output_size)
+        self.fc1 = self.slayer.dense(input_size, hidden_size)
+        self.fc2 = self.slayer.dense(hidden_size, output_size)
 
     def forward(self, spike_input):
-        spike_output = self.slayer.spike(self.slayer.psp(self.fc(spike_input)))
-        return spike_output
+        spike_enc1 = self.slayer.spike(self.slayer.psp(self.fc1(spike_input)))
+        spike_output = self.slayer.spike(self.slayer.psp(self.fc2(spike_enc1)))
+        return spike_output, spike_enc1
 
-class OneLayerAE(torch.nn.Module):
+class TwoLayerAE(torch.nn.Module):
     def __init__(self, params, hidden_size):
-        super(OneLayerAE, self).__init__()
-        self.encoder = OneLayerMLP(params, 156, hidden_size)
-        self.decoder = OneLayerMLP(params, hidden_size, 156)
+        super(TwoLayerAE, self).__init__()
+        self.encoder = TwoLayerMLP(params, 156, 64, hidden_size)
+        self.decoder = TwoLayerMLP(params, hidden_size, 64, 156)
 
     def forward(self, spike_input):
-        encoded_spike = self.encoder(spike_input)
-        spike_output = self.decoder(encoded_spike)
-        return spike_output, encoded_spike 
+        encoded_spike, enc1 = self.encoder(spike_input)
+        spike_output, dec1 = self.decoder(encoded_spike)
+        return spike_output, encoded_spike
 
 
-device = torch.device("cuda")
-net = OneLayerAE(params, args.hidden_size).to(device)
+device = torch.device("cuda:01")
+net = TwoLayerAE(params, args.hidden_size).to(device)
 
 
 error = snn.loss(params).to(device)

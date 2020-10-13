@@ -15,7 +15,7 @@
         batch_size: 8
         data_dir:
           required: true
-        network_config: /home/tasbolat/some_python_examples/AE_SNN/network_config/network_ae.yml
+        network_config: /home/tasbolat/some_python_examples/ae_snn/network_config/network_ae.yml
         hidden_size: 32
         model_type: 1
       compare:
@@ -28,5 +28,30 @@
         - =model_type
         - loss/train as loss_train
         - loss/test as loss_test
-        - min loss/train as min_acc_train
-        - min loss/test as min_acc_test
+        - min loss/train as min_loss_train
+        - min loss/test as min_loss_test
+    two-layer-ae:
+      description: Train the AE model
+      main: ae_two_layer
+      flags:
+        epochs: 1000
+        lr: 0.001
+        sample_file: 1
+        batch_size: 8
+        data_dir:
+          required: true
+        network_config: /home/tasbolat/some_python_examples/ae_snn/network_config/network_ae.yml
+        hidden_size: 32
+        model_type: 2
+      compare:
+        - =batch_size
+        - =epochs
+        - =lr
+        - =sample_file
+        - =hidden_size
+        - =loss
+        - =model_type
+        - loss/train as loss_train
+        - loss/test as loss_test
+        - min loss/train as min_loss_train
+        - min loss/test as min_loss_test
